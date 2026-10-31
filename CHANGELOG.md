@@ -19,7 +19,7 @@ then close it like any HTML comment. The release notes carry it, and the chat bo
 ### Added
 - The day as a balloon flight: what's left of the norm is the height. Land in the norm corridor for a soft landing, or come down early, drift past, fly into fog, or tie up at a fair (two a month).
 - A route of 31 villages through three lands to Cloud Harbour, each with a recipe that becomes your own dish in one tap; laps through the seasons.
-- Barcode and QR scanning with Google's scanner, including «Честный знак» DataMatrix codes; Open Food Facts for unknown packs.
+- Barcode, QR and DataMatrix scanning with Google's scanner; Open Food Facts for unknown packs.
 - Label photos read on the phone and checked against the calories.
 - One-line entries ("buckwheat 200, 2 eggs, cappuccino"), "same as yesterday", usual foods per meal, one-tap add and undo.
 - 249 everyday foods with household measures; your own foods; dishes with the finished-pot weight, servings, scanned ingredients and QR sharing.

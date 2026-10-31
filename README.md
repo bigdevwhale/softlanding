@@ -25,7 +25,7 @@
 
 ## Fast to log
 
-- **Barcodes and QR codes.** Google's code scanner (no camera permission in the app) reads EAN/UPC and the Russian «Честный знак» DataMatrix. Unknown codes are looked up in Open Food Facts and then kept on the phone.
+- **Barcodes and QR codes.** Google's code scanner (no camera permission in the app) reads EAN/UPC barcodes, QR codes and the DataMatrix codes printed on many packs. Unknown codes are looked up in Open Food Facts and then kept on the phone.
 - **A photo of the label.** The nutrition table is read on the phone (ML Kit) and checked against itself: protein×4 + fat×9 + carbs×4 has to come close to the calories. Nothing found? Make the food yourself in a few taps.
 - **One line for a meal.** "buckwheat 200, 2 eggs, cappuccino" becomes three entries with one button.
 - **Habits first.** "Same as yesterday", your usual foods for each meal, the last amount remembered, a one-tap "+" on every row, and undo.
