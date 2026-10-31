@@ -89,7 +89,7 @@ fun FoodEditor(h: Home, o: Overlay.FoodEdit, nav: Nav) {
         }
     }
 
-    val shot = remember { Scanner.shotUri(ctx) }
+    val shot = remember { runCatching { Scanner.shotUri(ctx) }.getOrDefault(android.net.Uri.EMPTY) }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok -> if (ok) read(shot) }
     val gallery = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> uri?.let(::read) }
 

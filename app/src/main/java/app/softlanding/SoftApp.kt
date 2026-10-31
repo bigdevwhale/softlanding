@@ -167,7 +167,7 @@ class SoftApp : Application() {
             } finally {
                 container.seeding.value = false
             }
-            if (container.settings.now().remind) Reminder.schedule(this@SoftApp, true)
+            if (container.settings.now().remind) runCatching { Reminder.schedule(this@SoftApp, true) }
         }
     }
 }

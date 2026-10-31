@@ -3,6 +3,7 @@ package app.softlanding
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.test.core.app.ApplicationProvider
 import app.softlanding.data.DemoSeed
 import app.softlanding.data.Meal
@@ -45,10 +46,11 @@ abstract class ScreensBase {
         app.container.settings.now()
     }
 
-    private fun shot(name: String, content: @Composable () -> Unit) {
+    private fun shot(name: String, waitFor: String? = tabLabel(), content: @Composable () -> Unit) {
         rule.mainClock.autoAdvance = false
         rule.setContent { SoftTheme { content() } }
-        rule.waitUntil(15_000) { rule.mainClock.advanceTimeBy(100); true }
+        // The database answers on its own threads: wait until the tab bar is there.
+        rule.waitUntil(20_000) { rule.mainClock.advanceTimeBy(100); waitFor == null || rule.onAllNodesWithText(waitFor).fetchSemanticsNodes().isNotEmpty() }
         rule.mainClock.advanceTimeBy(2_500)
         rule.waitForIdle()
         rule.mainClock.advanceTimeBy(800)
@@ -67,7 +69,28 @@ abstract class ScreensBase {
 
     private fun today() = Days.of(clock, 4)
 
-    @Test fun welcome() = shot("0-welcome") { Onboarding() }
+    private fun tabLabel() = ApplicationProvider.getApplicationContext<SoftApp>().getString(R.string.tab_pantry)
+
+    @Test fun welcome() = shot("0-welcome", null) { Onboarding() }
+    /** The launcher icon as a PNG for the README and the site. */
+    @Test fun logo() {
+        val ctx = ApplicationProvider.getApplicationContext<SoftApp>()
+        val n = 512
+        val image = android.graphics.Bitmap.createBitmap(n, n, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(image)
+        val clip = android.graphics.Path().apply { addRoundRect(0f, 0f, n.toFloat(), n.toFloat(), n * .22f, n * .22f, android.graphics.Path.Direction.CW) }
+        canvas.clipPath(clip)
+        // The adaptive icon is 108 units with a 72-unit safe zone: scale so the safe zone fills the square, plus a margin.
+        val k = n / 80f * 108f
+        val off = (n - k) / 2
+        for (id in listOf(R.drawable.ic_launcher_background, R.drawable.ic_launcher_foreground)) {
+            val d = androidx.core.content.ContextCompat.getDrawable(ctx, id)!!
+            d.setBounds(off.toInt(), off.toInt(), (off + k).toInt(), (off + k).toInt())
+            d.draw(canvas)
+        }
+        File(out.parentFile, "logo.png").outputStream().use { image.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+    }
+
     @Test fun flight() = screen("1-flight", Tab.FLIGHT)
     @Test fun add() = screen("2-add", Tab.FLIGHT) { Overlay.Add(Meal.DINNER, today()) }
     @Test fun amount() {

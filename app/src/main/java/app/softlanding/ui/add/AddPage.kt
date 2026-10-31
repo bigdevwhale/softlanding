@@ -151,7 +151,7 @@ fun AddPage(h: Home, o: Overlay.Add, nav: Nav) {
     fun scan() = Scanner.scan(ctx, ::code) { bus.say(ctx.getString(R.string.scan_fail)) }
 
     // A label photographed: the numbers are read on the phone and a new food opens with them filled in.
-    val shot = remember { Scanner.shotUri(ctx) }
+    val shot = remember { runCatching { Scanner.shotUri(ctx) }.getOrDefault(android.net.Uri.EMPTY) }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
         if (ok) {
             busy = ctx.getString(R.string.label_reading)
