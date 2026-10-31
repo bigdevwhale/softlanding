@@ -121,6 +121,8 @@
     <string name="search_online">Search Open Food Facts</string>
     <string name="searching">Searching…</string>
     <string name="create_named">New food “%1$s”</string>
+    <string name="not_found_title">Not on the phone yet</string>
+    <string name="not_found_hint">Make it yourself: type the numbers from the pack or photograph the label. Or look in Open Food Facts below.</string>
     <string name="add_quick">Add %1$s</string>
     <string name="tag_dish">dish</string>
     <string name="nothing_found">Nothing found.</string>
@@ -174,6 +176,8 @@
     <string name="dish_from_village">A recipe from %1$s</string>
     <string name="dish_ingredients">What goes in</string>
     <string name="dish_add_hint">Add an ingredient</string>
+    <string name="dish_scan_added">%1$s added: check the weight</string>
+    <string name="dish_scan_unknown">This code isn\'t known yet. Photograph the label: the food goes into the dish once saved.</string>
     <string name="dish_finished">The finished dish</string>
     <string name="dish_finished_hint">Weigh the whole pot once it\'s cooked: water boils off and grains swell, so every serving is counted right. Pick the pot below to take its weight off.</string>
     <string name="dish_weight">Weight, g</string>

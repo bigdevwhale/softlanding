@@ -228,6 +228,15 @@ fun AddPage(h: Home, o: Overlay.Add, nav: Nav) {
                     }
                 }
                 val results = Search.find(h.foods, bits.singleOrNull()?.text?.takeIf { it.isNotBlank() && bits.size == 1 } ?: q, h.now)
+                // Nothing on the phone: making it yourself comes first, not last.
+                if (results.isEmpty() && bits.size <= 1) item {
+                    Card(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), onClick = { nav.go(Overlay.FoodEdit(null, name = q.trim(), then = meal to day)) }, color = C.goldL, border = C.goldL) {
+                        Text(stringResource(R.string.not_found_title), style = T.Strong)
+                        Text(stringResource(R.string.not_found_hint), style = T.Small, modifier = Modifier.padding(top = 2.dp))
+                        Btn(stringResource(R.string.create_named, q.trim()), { nav.go(Overlay.FoodEdit(null, name = q.trim(), then = meal to day)) },
+                            Modifier.fillMaxWidth().padding(top = 10.dp), icon = Icons.Rounded.Add, small = true)
+                    }
+                }
                 if (results.isNotEmpty()) item { Section(stringResource(R.string.found), Modifier.padding(horizontal = 16.dp)) }
                 items(results, key = { "r" + it.id }) { f -> FoodRow(f, h.ru, { amount(f) }, { quickAdd(f) }) }
                 online?.let { xs ->
@@ -244,7 +253,7 @@ fun AddPage(h: Home, o: Overlay.Add, nav: Nav) {
                                 loading = false
                             }
                         }, Modifier.fillMaxWidth(), kind = app.softlanding.ui.components.Kind.SECONDARY, icon = Icons.Rounded.Language, enabled = !loading)
-                        if (bits.size <= 1) Btn(stringResource(R.string.create_named, q.trim()), { nav.go(Overlay.FoodEdit(null, name = q.trim(), then = meal to day)) },
+                        if (bits.size <= 1 && results.isNotEmpty()) Btn(stringResource(R.string.create_named, q.trim()), { nav.go(Overlay.FoodEdit(null, name = q.trim(), then = meal to day)) },
                             Modifier.fillMaxWidth(), kind = app.softlanding.ui.components.Kind.GHOST, icon = Icons.Rounded.Add)
                     }
                 }

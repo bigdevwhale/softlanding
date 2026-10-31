@@ -1,6 +1,10 @@
 package app.softlanding.ui.dish
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.QrCode2
+import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -75,6 +80,26 @@ fun DishEditor(h: Home, o: Overlay.Dish, nav: Nav) {
     val ctx = LocalContext.current
     val c = ctx.container
     val scope = rememberCoroutineScope()
+    val bus = app.softlanding.ui.components.LocalBus.current
+
+    // A food the base doesn't have (by code or by name): a new food opens over the dish, and once saved it goes into the pot.
+    var newCode by remember { mutableStateOf<String?>(null) }
+    var newName by remember { mutableStateOf<String?>(null) }
+
+    /** A pack scanned straight into the pot: the whole pack by default, since that's what usually goes in. */
+    fun scanned(raw: String, add: (Food, String) -> Unit) {
+        val gtin = app.softlanding.data.Codes.gtin(raw) ?: return bus.say(ctx.getString(R.string.scan_bad))
+        bus.say(ctx.getString(R.string.scan_looking))
+        scope.launch {
+            val f = c.byBarcode(gtin, h.ru)
+            if (f == null) { bus.say(ctx.getString(R.string.dish_scan_unknown)); newCode = gtin }
+            else {
+                val pack = app.softlanding.data.Portion.parse(f.portions).firstOrNull { it.unit.equals("PACK", true) }?.grams
+                add(f, grams(pack ?: defaultAmount(f, h.ru).first))
+                bus.say(ctx.getString(R.string.dish_scan_added, f.title(h.ru)))
+            }
+        }
+    }
     val d0 = h.byId[o.id]
     var name by remember { mutableStateOf(d0?.title(h.ru).orEmpty()) }
     val items = remember { mutableStateListOf<Pair<Food, String>>().apply { addAll(h.parts(o.id).map { it.first to grams(it.second) }) } }
@@ -103,51 +128,78 @@ fun DishEditor(h: Home, o: Overlay.Dish, nav: Nav) {
         }
     }
 
-    Page(stringResource(if (d0 == null) R.string.new_dish else R.string.edit_dish), nav::close, actions = {
-        if (d0 != null) {
-            IconBtn(Icons.Rounded.QrCode2, stringResource(R.string.share_qr), { nav.go(Overlay.Qr(d0.id)) }, bg = Color.Transparent)
-            IconBtn(Icons.Rounded.DeleteOutline, stringResource(R.string.delete), { c.write { foods.update(d0.copy(hidden = true)) }; nav.close() }, tint = C.red, bg = Color.Transparent)
-        }
-    }, bottom = {
-        Btn(stringResource(R.string.save), ::save, Modifier.fillMaxWidth(), enabled = name.isNotBlank() && parts.isNotEmpty())
-    }) {
-        Field(name, { name = it }, stringResource(R.string.dish_name_hint), Modifier.fillMaxWidth().padding(top = 6.dp))
-        d0?.village?.let { v -> Text(stringResource(R.string.dish_from_village, h.villages.firstOrNull { it.key == v }?.name(h.ru).orEmpty()), style = T.Small, modifier = Modifier.padding(top = 6.dp)) }
+    Box {
+        Page(stringResource(if (d0 == null) R.string.new_dish else R.string.edit_dish), nav::close, actions = {
+            if (d0 != null) {
+                IconBtn(Icons.Rounded.QrCode2, stringResource(R.string.share_qr), { nav.go(Overlay.Qr(d0.id)) }, bg = Color.Transparent)
+                IconBtn(Icons.Rounded.DeleteOutline, stringResource(R.string.delete), { c.write { foods.update(d0.copy(hidden = true)) }; nav.close() }, tint = C.red, bg = Color.Transparent)
+            }
+        }, bottom = {
+            Btn(stringResource(R.string.save), ::save, Modifier.fillMaxWidth(), enabled = name.isNotBlank() && parts.isNotEmpty())
+        }) {
+            Field(name, { name = it }, stringResource(R.string.dish_name_hint), Modifier.fillMaxWidth().padding(top = 6.dp))
+            d0?.village?.let { v -> Text(stringResource(R.string.dish_from_village, h.villages.firstOrNull { it.key == v }?.name(h.ru).orEmpty()), style = T.Small, modifier = Modifier.padding(top = 6.dp)) }
 
-        Section(stringResource(R.string.dish_ingredients))
-        items.forEachIndexed { i, (f, g) ->
-            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Column(Modifier.weight(1f)) {
-                    Text(f.title(h.ru), style = T.Body, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(kcal(f.per(num(g) ?: 0.0).kcal) + " " + stringResource(R.string.kcal), style = T.Small)
+            Section(stringResource(R.string.dish_ingredients))
+            items.forEachIndexed { i, (f, g) ->
+                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(Modifier.weight(1f)) {
+                        Text(f.title(h.ru), style = T.Body, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(kcal(f.per(num(g) ?: 0.0).kcal) + " " + stringResource(R.string.kcal), style = T.Small)
+                    }
+                    Field(g, { s -> items[i] = f to s.filter { it.isDigit() || it == ',' || it == '.' } }, "0", Modifier.width(92.dp), number = true,
+                        trail = { Text(stringResource(if (f.ml) R.string.ml else R.string.g), style = T.Small) })
+                    IconBtn(Icons.Rounded.Close, stringResource(R.string.delete), { items.removeAt(i) }, bg = Color.Transparent, tint = C.muted, size = 36.dp)
                 }
-                Field(g, { s -> items[i] = f to s.filter { it.isDigit() || it == ',' || it == '.' } }, "0", Modifier.width(92.dp), number = true,
-                    trail = { Text(stringResource(if (f.ml) R.string.ml else R.string.g), style = T.Small) })
-                IconBtn(Icons.Rounded.Close, stringResource(R.string.delete), { items.removeAt(i) }, bg = Color.Transparent, tint = C.muted, size = 36.dp)
+            }
+            Field(q, { q = it }, stringResource(R.string.dish_add_hint), Modifier.fillMaxWidth().padding(top = 8.dp), lead = Icons.Rounded.Search, trail = {
+                IconBtn(Icons.Rounded.QrCodeScanner, stringResource(R.string.scan), {
+                    app.softlanding.ui.add.Scanner.scan(ctx, { raw -> scanned(raw) { f, g -> items += f to g } }) { bus.say(ctx.getString(R.string.scan_fail)) }
+                }, bg = Color.Transparent, tint = C.red, size = 40.dp)
+            })
+            if (q.isNotBlank()) Card(Modifier.fillMaxWidth().padding(top = 6.dp), pad = 0.dp) {
+                val found = Search.find(h.foods.filter { it.id != o.id }, q, h.now, 6)
+                for (f in found) FoodRow(f, h.ru, { items += f to grams(defaultAmount(f, h.ru).first); q = "" }, null)
+                Row(Modifier.fillMaxWidth().clickable { newName = q.trim(); q = "" }.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.Add, null, tint = C.red)
+                    Spacer(Modifier.width(10.dp))
+                    Text(stringResource(R.string.create_named, q.trim()), style = T.Body.copy(color = C.red), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+
+            Section(stringResource(R.string.dish_finished))
+            Text(stringResource(R.string.dish_finished_hint), style = T.Small)
+            Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                NumField(cooked, { cooked = it }, stringResource(R.string.dish_weight), Modifier.weight(1f))
+                NumField(servings, { servings = it.filter(Char::isDigit).take(2) }, stringResource(R.string.dish_servings), Modifier.weight(1f))
+            }
+            if (h.plates.isNotEmpty()) Flow(Modifier.padding(top = 8.dp)) {
+                for (p in h.plates) Chip(stringResource(R.string.minus_plate, p.name, grams(p.grams)), pot == p.grams, { pot = if (pot == p.grams) 0.0 else p.grams }, color = C.skyD)
+            }
+
+            Card(Modifier.fillMaxWidth().padding(top = 14.dp), color = C.meadowL, border = C.meadowL) {
+                Row2(stringResource(R.string.dish_whole, grams(finished)), kcal(total.kcal) + " " + stringResource(R.string.kcal), strong = true)
+                Row2(stringResource(R.string.per_100), kcal(per100.kcal) + " " + stringResource(R.string.kcal) + " · " + stringResource(R.string.pfc_short, one(per100.p), one(per100.f), one(per100.c)))
+                if (sv != null && finished > 0) Row2(stringResource(R.string.dish_per_serving, grams(finished / sv)), kcal(total.kcal / sv) + " " + stringResource(R.string.kcal))
+                if (weighed == null && parts.isNotEmpty()) Text(stringResource(R.string.dish_raw_note), style = T.Small, modifier = Modifier.padding(top = 6.dp))
             }
         }
-        Field(q, { q = it }, stringResource(R.string.dish_add_hint), Modifier.fillMaxWidth().padding(top = 8.dp), lead = Icons.Rounded.Search)
-        if (q.isNotBlank()) Card(Modifier.fillMaxWidth().padding(top = 6.dp), pad = 0.dp) {
-            val found = Search.find(h.foods.filter { it.id != o.id }, q, h.now, 6)
-            if (found.isEmpty()) Text(stringResource(R.string.nothing_found), style = T.Small, modifier = Modifier.padding(16.dp))
-            for (f in found) FoodRow(f, h.ru, { items += f to grams(defaultAmount(f, h.ru).first); q = "" }, null)
-        }
-
-        Section(stringResource(R.string.dish_finished))
-        Text(stringResource(R.string.dish_finished_hint), style = T.Small)
-        Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            NumField(cooked, { cooked = it }, stringResource(R.string.dish_weight), Modifier.weight(1f))
-            NumField(servings, { servings = it.filter(Char::isDigit).take(2) }, stringResource(R.string.dish_servings), Modifier.weight(1f))
-        }
-        if (h.plates.isNotEmpty()) Flow(Modifier.padding(top = 8.dp)) {
-            for (p in h.plates) Chip(stringResource(R.string.minus_plate, p.name, grams(p.grams)), pot == p.grams, { pot = if (pot == p.grams) 0.0 else p.grams }, color = C.skyD)
-        }
-
-        Card(Modifier.fillMaxWidth().padding(top = 14.dp), color = C.meadowL, border = C.meadowL) {
-            Row2(stringResource(R.string.dish_whole, grams(finished)), kcal(total.kcal) + " " + stringResource(R.string.kcal), strong = true)
-            Row2(stringResource(R.string.per_100), kcal(per100.kcal) + " " + stringResource(R.string.kcal) + " · " + stringResource(R.string.pfc_short, one(per100.p), one(per100.f), one(per100.c)))
-            if (sv != null && finished > 0) Row2(stringResource(R.string.dish_per_serving, grams(finished / sv)), kcal(total.kcal / sv) + " " + stringResource(R.string.kcal))
-            if (weighed == null && parts.isNotEmpty()) Text(stringResource(R.string.dish_raw_note), style = T.Small, modifier = Modifier.padding(top = 6.dp))
+        if (newCode != null || newName != null) {
+            val code = newCode
+            val name = newName.orEmpty()
+            app.softlanding.ui.add.FoodEditor(h, Overlay.FoodEdit(null, barcode = code, name = name), Nav({
+                newCode = null
+                newName = null
+                scope.launch {
+                    // The food just saved: by its code, or the newest one made by hand.
+                    val made = code?.let { c.foods.byBarcode(it) } ?: c.foods.list().filter { it.source != Source.BUILTIN && !it.isDish }.maxByOrNull { it.id }
+                        ?.takeIf { h.byId[it.id] == null }
+                    made?.let { f ->
+                        val pack = app.softlanding.data.Portion.parse(f.portions).firstOrNull { it.unit.equals("PACK", true) }?.grams
+                        items += f to grams(pack ?: defaultAmount(f, h.ru).first)
+                    }
+                }
+            }, {}, {}))
         }
     }
 }

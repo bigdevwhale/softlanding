@@ -121,6 +121,8 @@
     <string name="search_online">Искать в Open Food Facts</string>
     <string name="searching">Ищу…</string>
     <string name="create_named">Новый продукт «%1$s»</string>
+    <string name="not_found_title">На телефоне такого пока нет</string>
+    <string name="not_found_hint">Добавь его сам: впиши цифры с упаковки или сфотографируй этикетку. Или поищи ниже в Open Food Facts.</string>
     <string name="add_quick">Добавить: %1$s</string>
     <string name="tag_dish">блюдо</string>
     <string name="nothing_found">Ничего не нашлось.</string>
@@ -174,6 +176,8 @@
     <string name="dish_from_village">Рецепт из деревни %1$s</string>
     <string name="dish_ingredients">Что входит</string>
     <string name="dish_add_hint">Добавить ингредиент</string>
+    <string name="dish_scan_added">Добавлено: %1$s. Проверь вес</string>
+    <string name="dish_scan_unknown">Такого кода пока нет в базе. Сфотографируй этикетку: после сохранения продукт сам встанет в блюдо.</string>
     <string name="dish_finished">Готовое блюдо</string>
     <string name="dish_finished_hint">Взвесь всю кастрюлю, когда блюдо готово: вода выкипает, крупа набухает, и так каждая порция посчитается верно. Ниже можно выбрать кастрюлю, её вес вычтется.</string>
     <string name="dish_weight">Вес, г</string>
