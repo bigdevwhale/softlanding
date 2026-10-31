@@ -15,7 +15,7 @@ robolectric = "4.14.1"
 work = "2.10.1"
 exif = "1.4.1"
 codeScanner = "16.1.0"
-textRecognition = "16.0.1"
+textRecognition = "19.0.1"
 zxing = "3.5.3"
 
 [libraries]
@@ -47,7 +47,7 @@ androidx-work-testing = { group = "androidx.work", name = "work-testing", versio
 androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exif" }
 
 gms-code-scanner = { group = "com.google.android.gms", name = "play-services-code-scanner", version.ref = "codeScanner" }
-mlkit-text = { group = "com.google.mlkit", name = "text-recognition", version.ref = "textRecognition" }
+mlkit-text = { group = "com.google.android.gms", name = "play-services-mlkit-text-recognition", version.ref = "textRecognition" }
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 
 [plugins]

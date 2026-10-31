@@ -6,6 +6,14 @@ line "<!-- tg", then 2-4 short lines in Russian for users (what is new, what is 
 then close it like any HTML comment. The release notes carry it, and the chat bot posts those lines.
 -->
 
+## [1.0.1] - 2026-10-31
+
+### Changed
+- Label reading now comes from Google Play services, like the barcode scanner: the APK is 5.5 MB instead of 48 MB.
+- Plainer Russian on the welcome screen.
+
+<!-- tg skip -->
+
 ## [1.0.0] - 2026-10-31
 
 ### Added

@@ -38,10 +38,10 @@
                 android:resource="@xml/shots" />
         </provider>
 
-        <!-- The barcode scanner module of Play services is fetched with the app, not on the first scan. -->
+        <!-- The scanner and the label reader come from Play services; they are fetched with the app, not on first use. -->
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
-            android:value="barcode_ui" />
+            android:value="barcode_ui,ocr" />
 
         <!-- Persists the in-app language choice on Android 12 and older. -->
         <service
