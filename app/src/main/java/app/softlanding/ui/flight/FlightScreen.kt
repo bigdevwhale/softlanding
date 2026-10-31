@@ -42,6 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.softlanding.R
 import app.softlanding.container
@@ -55,6 +56,7 @@ import app.softlanding.ui.Home
 import app.softlanding.ui.Nav
 import app.softlanding.ui.Overlay
 import app.softlanding.ui.art.FlightScene
+import app.softlanding.ui.art.balloon
 import app.softlanding.ui.components.Btn
 import app.softlanding.ui.components.Card
 import app.softlanding.ui.components.IconBtn
@@ -95,7 +97,7 @@ fun FlightScreen(h: Home, day: Long, nav: Nav) {
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             // The sky, with the date over it.
-            Box(Modifier.fillMaxWidth().height(330.dp).clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))) {
+            Box(Modifier.fillMaxWidth().height(270.dp).clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))) {
                 val hour = Days.hour(h.now)
                 FlightScene(h.scene(day, hour, Days.progress(h.now)), Modifier.fillMaxSize())
                 // A soft shade at the top keeps the date readable over any sky.
@@ -122,27 +124,45 @@ fun FlightScreen(h: Home, day: Long, nav: Nav) {
             Column(Modifier.padding(horizontal = 16.dp)) {
                 // What's left before the meadow.
                 Card(Modifier.fillMaxWidth().padding(top = 14.dp)) {
+                    // 1. The one number that matters.
+                    Text(stringResource(when {
+                        fair -> R.string.fair_today
+                        left >= 0 -> R.string.left_to_meadow
+                        else -> R.string.over_meadow
+                    }).uppercase(), style = T.Tiny)
                     Row(verticalAlignment = Alignment.Bottom) {
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(when {
-                                fair -> R.string.fair_today
-                                left >= 0 -> R.string.left_to_meadow
-                                else -> R.string.over_meadow
-                            }), style = T.Small)
-                            Text(if (fair) "—" else kcal(abs(left)), style = T.Hero.copy(color = when {
-                                fair -> C.gold
-                                eaten.kcal > norm.hi -> C.red
-                                eaten.kcal >= norm.lo -> C.meadowD
-                                else -> C.ink
-                            }))
-                        }
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(stringResource(R.string.eaten_of, kcal(eaten.kcal), kcal(norm.kcal.toDouble())), style = T.Body.copy(color = C.inkSoft))
-                            Text(stringResource(R.string.meadow_range, kcal(norm.lo.toDouble()), kcal(norm.hi.toDouble())), style = T.Small)
+                        Text(if (fair) "—" else kcal(abs(left)), style = T.Hero.copy(color = when {
+                            fair -> C.gold
+                            eaten.kcal > norm.hi -> C.red
+                            eaten.kcal >= norm.lo -> C.meadowD
+                            else -> C.ink
+                        }))
+                        if (!fair) Text(" " + stringResource(R.string.kcal), style = T.Heading.copy(color = C.muted), modifier = Modifier.padding(bottom = 6.dp))
+                    }
+                    // 2. Where the day stands, with its ends named.
+                    if (!fair) {
+                        MeadowMark(norm.lo.toDouble(), norm.hi.toDouble(), maxOf(norm.hi * 1.12, eaten.kcal), Modifier.padding(top = 8.dp))
+                        app.softlanding.ui.add.DayStrip(0.0, eaten.kcal, norm.lo.toDouble(), norm.hi.toDouble())
+                        Row(Modifier.fillMaxWidth().padding(top = 6.dp)) {
+                            Text(stringResource(R.string.strip_eaten, kcal(eaten.kcal)), style = T.Small.copy(color = C.ink), modifier = Modifier.weight(1f))
+                            Text(stringResource(R.string.strip_norm, kcal(norm.kcal.toDouble())), style = T.Small)
                         }
                     }
-                    Text(status(h, day, eaten.kcal), style = T.Body.copy(color = C.inkSoft), modifier = Modifier.padding(top = 6.dp))
-                    Row(Modifier.padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    // 3. What to do about it.
+                    val tone = when {
+                        fair -> C.goldD
+                        eaten.kcal > norm.hi -> C.redD
+                        eaten.kcal >= norm.lo -> C.meadowD
+                        else -> C.skyD
+                    }
+                    Row(Modifier.padding(top = 12.dp).fillMaxWidth().clip(app.softlanding.ui.components.RoundS).background(tone.copy(alpha = .1f)).padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.foundation.Canvas(Modifier.size(18.dp, 22.dp)) { balloon(size.width / 2, 0f, size.width * .4f, h.s.envelope) }
+                        Spacer(Modifier.width(10.dp))
+                        Text(status(h, day, eaten.kcal), style = T.Body.copy(color = tone), modifier = Modifier.weight(1f))
+                    }
+                    Box(Modifier.padding(top = 14.dp).fillMaxWidth().height(1.dp).background(C.line))
+                    Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         MacroBar(stringResource(R.string.protein), eaten.p, norm.protein, C.protein, Modifier.weight(1f))
                         MacroBar(stringResource(R.string.fat), eaten.f, norm.fat, C.fat, Modifier.weight(1f))
                         MacroBar(stringResource(R.string.carbs), eaten.c, norm.carbs, C.carbs, Modifier.weight(1f))
@@ -195,15 +215,14 @@ private fun MealCard(h: Home, day: Long, m: Meal, nav: Nav) {
     val es = h.meal(day, m)
     val sum = es.sumOf { it.kcal }
     Card(Modifier.fillMaxWidth().padding(top = 12.dp), pad = 0.dp) {
-        Row(Modifier.fillMaxWidth().clickable { nav.go(Overlay.Add(m, day)) }.padding(start = 16.dp, end = 8.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(mealName(m)), style = T.Heading)
-                if (es.isNotEmpty()) Text(stringResource(R.string.kcal_n, kcal(sum)), style = T.Small)
-            }
-            Box(Modifier.size(40.dp).clip(CircleShape).background(C.redL), contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.Add, stringResource(R.string.add_to, stringResource(mealName(m))), tint = C.red)
+        Row(Modifier.fillMaxWidth().clickable { nav.go(Overlay.Add(m, day)) }.padding(start = 16.dp, end = 10.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(mealName(m)), style = T.Strong.copy(fontSize = 17.sp), modifier = Modifier.weight(1f))
+            if (es.isNotEmpty()) Text(kcal(sum), style = T.Strong.copy(fontSize = 17.sp), modifier = Modifier.padding(end = 10.dp))
+            Box(Modifier.size(34.dp).clip(CircleShape).background(C.redL), contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.Add, stringResource(R.string.add_to, stringResource(mealName(m))), tint = C.red, modifier = Modifier.size(20.dp))
             }
         }
+        if (es.isNotEmpty()) Box(Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(1.dp).background(C.line))
         for (e in es) EntryRow(e) { nav.go(Overlay.EditEntry(e.id)) }
         if (es.isEmpty()) {
             // The same meal yesterday, one tap away.
@@ -282,9 +301,16 @@ private fun status(h: Home, day: Long, eaten: Double): String {
         eaten == 0.0 -> stringResource(R.string.st_empty)
         eaten > n.hi -> stringResource(R.string.st_over, kcal(eaten - n.hi))
         eaten >= n.lo -> stringResource(R.string.st_meadow)
-        else -> {
-            val share = (eaten / n.kcal * 100).roundToInt()
-            stringResource(R.string.st_flying, share)
-        }
+        else -> stringResource(R.string.st_flying, kcal(n.lo - eaten), kcal(n.hi - eaten))
+    }
+}
+
+/** «луг» written over the green part of the strip. */
+@Composable
+private fun MeadowMark(lo: Double, hi: Double, span: Double, modifier: Modifier = Modifier) {
+    androidx.compose.foundation.layout.BoxWithConstraints(modifier.fillMaxWidth().height(18.dp)) {
+        val mid = ((lo + hi) / 2 / span).toFloat()
+        Text(stringResource(R.string.strip_meadow), style = T.Tiny.copy(color = C.meadowD), maxLines = 1,
+            modifier = Modifier.padding(start = (maxWidth * mid - 14.dp).coerceAtLeast(0.dp)))
     }
 }

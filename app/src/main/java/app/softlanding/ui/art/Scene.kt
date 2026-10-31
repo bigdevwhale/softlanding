@@ -107,7 +107,7 @@ private fun DrawScope.scene(s: SceneState, alt: Float, prog: Float, sway: Float,
     repeat(5) { i ->
         val base = cr.nextFloat()
         val cx = ((base + drift * (0.4f + i * .12f)) % 1.2f - .1f) * w
-        val cy = h * (.24f + cr.nextFloat() * .3f)
+        val cy = h * (.38f + cr.nextFloat() * .24f)
         cloud(cx, cy, w * (.028f + cr.nextFloat() * .028f), if (k.night) Color(0x553E4C7E) else Color(0xD9FFFFFF))
     }
 
@@ -138,7 +138,7 @@ private fun DrawScope.scene(s: SceneState, alt: Float, prog: Float, sway: Float,
     val bx0 = w * .08f
     val bxMax = w * .74f
     val r = w * .065f
-    val top = h * .25f
+    val top = h * .34f
     val lowest = ground - r * 2.1f
     fun yAt(a: Float) = lowest - (lowest - top) * a.coerceIn(0f, 1.05f)
     val swayY = sin(sway * 2 * PI).toFloat() * h * .008f
