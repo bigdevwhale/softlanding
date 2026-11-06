@@ -1,0 +1,51 @@
+Counting calories is dull, and dull things get dropped by Wednesday. Soft Landing turns every day into a balloon flight to the next village.
+
+In the morning the balloon is light and high. Everything you eat is ballast, and the balloon comes down. Land softly on the meadow by evening, your daily norm give or take, and you reach the next village, which gives you a recipe. Eat too much and you come down early in a farmer's field; too little and the wind carries you past. Logging is fast: barcodes, label photos, one line for a whole meal. Free, no ads, no account.
+
+🎈 THE FLIGHT
+• What's left of the norm is the balloon's height
+• A strip shows what's eaten, what a food would add and where the meadow is
+• Landings: soft (in the corridor), early (too much), past the meadow (too little), fog (nothing written down)
+• Fair days: two a month for birthdays and holidays, never breaking your run
+• Enough protein puts a tailwind on the day's stamp
+
+⚡ FAST TO LOG
+• Barcodes, QR and DataMatrix codes with Google's scanner; the app itself needs no camera permission
+• Unknown packs are looked up in Open Food Facts and then kept on the phone
+• A photo of the nutrition label is read on the phone and checked against itself: protein, fat and carbs have to add up to the calories
+• One line for a meal: "buckwheat 200, 2 eggs, cappuccino" becomes three entries with one button
+• "Same as yesterday", your usual foods for each meal, the last amount remembered, one-tap "+" and undo
+• 249 everyday foods with household measures: piece, slice, glass, spoon, plate
+• Eyeball measures (palm, fist, handful) and "just calories" for cafés
+
+🍲 DISHES
+• Build a dish from what goes into the pot, scanning packs straight into it
+• Weigh the finished pot once, and every serving after that is exact: water boils off, grains swell
+• Plates and pots are weighed once and taken off the scales by themselves
+• Share a dish as a QR code
+
+🗺 THE ROUTE
+• 31 villages through the Meadowland, the Lakeland and the Foothills up to Cloud Harbour
+• Each village has its own recipe that goes into your dishes in one tap
+• Laps through the four seasons
+• Rough days just leave you in the fields: no step back
+
+📖 THE LOGBOOK AND THE HANGAR
+• A month of coloured landings and a handwritten note from the aeronaut for every day
+• The week in numbers and the weight line with your goal
+• Twelve balloon envelopes opened by soft landings
+
+THE NORM
+• Mifflin–St Jeor with your activity and pace, never below a safe floor
+• Or your own number from a doctor or a coach
+
+ALSO
+• A day that starts at 4 am, so a late snack still belongs to yesterday
+• One gentle evening note, only if the day is still almost empty
+• CSV export
+• English and Russian
+• Free and open source (MIT)
+
+Privacy: no account, no ads, no analytics. Your diary, weight and dishes stay on your phone. Only barcodes and search words go to Open Food Facts, and that can be switched off in settings.
+
+Soft Landing is a food diary, not medical advice. If you have a health condition, are pregnant or have had an eating disorder, talk to a doctor about your norm.
