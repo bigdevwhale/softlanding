@@ -6,6 +6,16 @@ line "<!-- tg", then 2-4 short lines in Russian for users (what is new, what is 
 then close it like any HTML comment. The release notes carry it, and the chat bot posts those lines.
 -->
 
+## [1.0.2] - 2026-11-17
+
+### Fixed
+- **The weight goal on the route tells the truth:** «now» is your last weigh-in, not the smoothed line, and the starting weight can be set in the profile in settings; left empty, it is the first weigh-in as before (#3).
+
+<!-- tg
+В карточке цели на «Маршруте» текущий вес теперь равен последнему взвешиванию, а не сглаженному значению.
+Вес на старте можно задать самому в настройках профиля.
+-->
+
 ## [1.0.1] - 2026-10-31
 
 ### Changed
