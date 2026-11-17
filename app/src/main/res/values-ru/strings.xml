@@ -249,6 +249,8 @@
     <string name="p_height">Рост, см</string>
     <string name="p_weight">Вес, кг</string>
     <string name="p_goal">Цель, кг</string>
+    <string name="p_start">Вес на старте, кг</string>
+    <string name="p_start_hint">С этого веса считается путь к цели. Если оставить пустым, возьмём первое взвешивание.</string>
     <string name="p_activity">Сколько ты двигаешься?</string>
     <string name="act_sitting">В основном сижу</string>
     <string name="act_sitting_d">работа за столом, мало хожу</string>

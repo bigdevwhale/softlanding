@@ -63,14 +63,17 @@ private fun num(s: String) = s.replace(',', '.').toDoubleOrNull()
 
 /** Who is flying: the fields of a profile, shared with the welcome. */
 @Composable
-fun ProfileFields(p: Profile, onChange: (Profile) -> Unit) {
+fun ProfileFields(p: Profile, showStart: Boolean = false, onChange: (Profile) -> Unit) {
     var age by remember { mutableStateOf(p.age.toString()) }
     var height by remember { mutableStateOf(p.height.toString()) }
     var weight by remember { mutableStateOf(one(p.weight).replace('.', ',')) }
     var goal by remember { mutableStateOf(one(p.goal).replace('.', ',')) }
-    fun push(a: String = age, hh: String = height, w: String = weight, g: String = goal) {
+    var start by remember { mutableStateOf(if (p.start > 0) one(p.start).replace('.', ',') else "") }
+    fun push(a: String = age, hh: String = height, w: String = weight, g: String = goal, st: String = start) {
         onChange(p.copy(age = a.toIntOrNull()?.coerceIn(12, 100) ?: p.age, height = hh.toIntOrNull()?.coerceIn(120, 230) ?: p.height,
-            weight = num(w)?.coerceIn(30.0, 300.0) ?: p.weight, goal = num(g)?.coerceIn(30.0, 300.0) ?: p.goal))
+            weight = num(w)?.coerceIn(30.0, 300.0) ?: p.weight, goal = num(g)?.coerceIn(30.0, 300.0) ?: p.goal,
+            // an empty start goes back to the first weigh-in
+            start = if (st.isBlank()) 0.0 else num(st)?.coerceIn(30.0, 300.0) ?: p.start))
     }
     Flow {
         Chip(stringResource(R.string.sex_f), p.sex == Sex.F, { onChange(p.copy(sex = Sex.F)) })
@@ -83,6 +86,10 @@ fun ProfileFields(p: Profile, onChange: (Profile) -> Unit) {
     Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         NumField(weight, { weight = it; push(w = it) }, stringResource(R.string.p_weight), Modifier.weight(1f))
         NumField(goal, { goal = it; push(g = it) }, stringResource(R.string.p_goal), Modifier.weight(1f))
+    }
+    if (showStart) {
+        NumField(start, { start = it; push(st = it) }, stringResource(R.string.p_start), Modifier.fillMaxWidth().padding(top = 8.dp))
+        Text(stringResource(R.string.p_start_hint), style = T.Small, modifier = Modifier.padding(top = 4.dp))
     }
     Text(stringResource(R.string.p_activity), style = T.Small, modifier = Modifier.padding(top = 12.dp, bottom = 6.dp))
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -134,7 +141,7 @@ fun SettingsPage(h: Home, nav: Nav) {
         Section(stringResource(R.string.set_norm))
         NormCard(norm)
         Section(stringResource(R.string.set_profile))
-        ProfileFields(profile) { profile = it }
+        ProfileFields(profile, showStart = true) { profile = it }
         NumField(manual, { manual = it.filter(Char::isDigit).take(4) }, stringResource(R.string.p_manual), Modifier.fillMaxWidth().padding(top = 12.dp))
         Text(stringResource(R.string.p_manual_hint), style = T.Small, modifier = Modifier.padding(top = 4.dp))
         if (dirty) Btn(stringResource(R.string.save), {

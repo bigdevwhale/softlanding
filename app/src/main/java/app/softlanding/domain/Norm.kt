@@ -18,6 +18,8 @@ data class Profile(
     val goal: Double = 65.0,
     val activity: Activity = Activity.LIGHT,
     val pace: Double = 0.5,
+    /** The weight the flight is counted from; 0 takes the first weigh-in. */
+    val start: Double = 0.0,
 ) {
     /** -1 to lose, 0 to keep, 1 to gain. */
     val direction get() = when {

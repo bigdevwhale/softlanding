@@ -55,6 +55,7 @@ class SettingsStore(context: Context) {
             goal = this[GOAL] ?: 65.0,
             activity = runCatching { Activity.valueOf(this[ACT] ?: "") }.getOrDefault(Activity.LIGHT),
             pace = this[PACE] ?: 0.5,
+            start = this[START_KG] ?: 0.0,
         ),
         manualKcal = this[MANUAL] ?: 0,
         dayStart = this[DAY_START] ?: 4,
@@ -77,6 +78,7 @@ class SettingsStore(context: Context) {
             it[HEIGHT] = s.profile.height
             it[WEIGHT] = s.profile.weight
             it[GOAL] = s.profile.goal
+            it[START_KG] = s.profile.start
             it[ACT] = s.profile.activity.name
             it[PACE] = s.profile.pace
             it[MANUAL] = s.manualKcal
@@ -97,6 +99,7 @@ class SettingsStore(context: Context) {
         val HEIGHT = intPreferencesKey("height")
         val WEIGHT = doublePreferencesKey("weight")
         val GOAL = doublePreferencesKey("goal")
+        val START_KG = doublePreferencesKey("start_kg")
         val ACT = stringPreferencesKey("activity")
         val PACE = doublePreferencesKey("pace")
         val MANUAL = intPreferencesKey("manual")

@@ -249,6 +249,8 @@
     <string name="p_height">Height, cm</string>
     <string name="p_weight">Weight, kg</string>
     <string name="p_goal">Goal, kg</string>
+    <string name="p_start">Starting weight, kg</string>
+    <string name="p_start_hint">The way to the goal is counted from this weight. Leave it empty to take the first weigh-in.</string>
     <string name="p_activity">How much do you move?</string>
     <string name="act_sitting">Mostly sitting</string>
     <string name="act_sitting_d">desk work, little walking</string>

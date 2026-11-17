@@ -186,8 +186,10 @@ private fun VillageLabel(h: Home, v: app.softlanding.domain.Village, reached: Bo
 @Composable
 private fun WeightGoal(h: Home) {
     val p = h.s.profile
-    val start = h.weighs.minByOrNull { it.day }?.kg ?: return
-    val now = h.trend.lastOrNull()?.second ?: return
+    // From the start the flyer set, else the first weigh-in; «now» is the last real weigh-in, not the smoothed line (#3).
+    val first = h.weighs.minByOrNull { it.day }?.kg ?: return
+    val start = p.start.takeIf { it > 0 } ?: first
+    val now = h.weighs.maxByOrNull { it.day }?.kg ?: return
     if (p.direction == 0 && kotlin.math.abs(start - p.goal) < .5) return
     val total = start - p.goal
     val gone = start - now
