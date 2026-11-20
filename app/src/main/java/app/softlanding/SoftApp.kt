@@ -52,8 +52,12 @@ class AppContainer(context: Context) {
     /** Puts the built-in foods in, and adds any the table gained since the last version. */
     suspend fun seedFoods() {
         val table = Builtin.read(app)
+        val list = foods.list()
+        // the table's fiber reaches foods put in before it was there (#2)
+        val fib = table.associate { it.key to it.fiber }
+        list.filter { it.source == Source.BUILTIN && it.fiber == 0.0 && (fib[it.key] ?: 0.0) > 0 }.forEach { foods.update(it.copy(fiber = fib.getValue(it.key))) }
         if (foods.builtinCount() >= table.size) return
-        val have = foods.list().mapNotNull { it.key }.toSet()
+        val have = list.mapNotNull { it.key }.toSet()
         foods.insertAll(table.filter { it.key !in have })
     }
 
@@ -63,7 +67,7 @@ class AppContainer(context: Context) {
         val now = System.currentTimeMillis()
         val title = food.title(app.ru)
         val id = entries.insert(Entry(day = day, meal = meal, at = now, food = food.id.takeIf { it > 0 }, name = title,
-            grams = grams, kcal = n.kcal, p = n.p, f = n.f, c = n.c, how = how, ml = food.ml))
+            grams = grams, kcal = n.kcal, p = n.p, f = n.f, c = n.c, how = how, ml = food.ml, fb = n.fb))
         if (food.id > 0) foods.used(food.id, now, grams)
         if (announce) loaded.value = Loaded(listOf(title), n.kcal, listOf(id))
         return id
@@ -78,7 +82,7 @@ class AppContainer(context: Context) {
     /** Just a number of calories, for when there's no time. */
     suspend fun quick(kcal: Double, name: String, meal: Meal, day: Long, n: Nutr? = null) {
         val id = entries.insert(Entry(day = day, meal = meal, at = System.currentTimeMillis(), name = name, grams = 0.0, kcal = kcal,
-            p = n?.p ?: 0.0, f = n?.f ?: 0.0, c = n?.c ?: 0.0))
+            p = n?.p ?: 0.0, f = n?.f ?: 0.0, c = n?.c ?: 0.0, fb = n?.fb ?: 0.0))
         loaded.value = Loaded(listOf(name), kcal, listOf(id))
     }
 
@@ -118,7 +122,7 @@ class AppContainer(context: Context) {
         val cooked = dish.cooked.takeIf { it > 0 } ?: raw
         val k = if (cooked > 0) 100 / cooked else 0.0
         val serving = if (dish.servings > 0) cooked / dish.servings else 0.0
-        val f = dish.copy(kcal = total.kcal * k, p = total.p * k, f = total.f * k, c = total.c * k, cooked = cooked, source = Source.DISH,
+        val f = dish.copy(kcal = total.kcal * k, p = total.p * k, f = total.f * k, c = total.c * k, fiber = total.fb * k, cooked = cooked, source = Source.DISH,
             portions = if (serving > 0) Portion.join(listOf(Portion("serving", serving))) else "")
         val id = if (f.id > 0) { foods.update(f); f.id } else foods.insert(f)
         foods.clearIngredients(id)
@@ -168,6 +172,12 @@ class SoftApp : Application() {
                 container.seeding.value = false
             }
             if (container.settings.now().remind) runCatching { Reminder.schedule(this@SoftApp, true) }
+        }
+        // the home-screen widget follows whatever is written down, and the norm (#4)
+        container.scope.launch {
+            kotlinx.coroutines.flow.combine(container.entries.all(), container.settings.settings) { _, _ -> Unit }.collect {
+                runCatching { app.softlanding.work.MacroWidget.refresh(this@SoftApp) }
+            }
         }
     }
 }

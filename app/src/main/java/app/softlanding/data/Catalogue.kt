@@ -11,12 +11,12 @@ object Builtin {
     fun read(ctx: Context): List<Food> = ctx.assets.open("foods.tsv").bufferedReader(Charsets.UTF_8).use { parse(it.readLines()) }
 
     fun parse(lines: List<String>): List<Food> = lines.filter { it.isNotBlank() && !it.startsWith("#") }.map { l ->
-        val c = l.split('\t') + List(12) { "" }
+        val c = l.split('\t') + List(13) { "" }
         Food(
             key = c[0], group = c[1], name = c[2], en = c[3],
             kcal = c[4].toDouble(), p = c[5].toDouble(), f = c[6].toDouble(), c = c[7].toDouble(),
             portions = c[8], ml = c[9] == "1", aliases = listOf(c[10], c[11]).filter { it.isNotBlank() }.joinToString(","),
-            source = Source.BUILTIN,
+            source = Source.BUILTIN, fiber = c[12].toDoubleOrNull() ?: 0.0,
         )
     }
 }
@@ -84,7 +84,7 @@ object Off {
         val portions = listOfNotNull(serving?.let { Portion("serving", it) }, pack?.takeIf { it != serving }?.let { Portion("PACK", it) })
         return Food(
             name = name, brand = p.optString("brands").substringBefore(',').trim(), barcode = code.ifBlank { null },
-            kcal = kcal, p = v("proteins_100g") ?: 0.0, f = v("fat_100g") ?: 0.0, c = v("carbohydrates_100g") ?: 0.0,
+            kcal = kcal, p = v("proteins_100g") ?: 0.0, f = v("fat_100g") ?: 0.0, c = v("carbohydrates_100g") ?: 0.0, fiber = v("fiber_100g") ?: 0.0,
             portions = Portion.join(portions), ml = ml, source = Source.ONLINE,
         )
     }

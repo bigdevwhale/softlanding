@@ -26,6 +26,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Today's calories and macros on the home screen (#4). -->
+        <receiver
+            android:name=".work.MacroWidget"
+            android:exported="false"
+            android:label="@string/w_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_macros_info" />
+        </receiver>
 
         <!-- The phone's own camera writes label photos here; the CSV export is shared from here too. -->
         <provider

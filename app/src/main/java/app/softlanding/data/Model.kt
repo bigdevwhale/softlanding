@@ -1,5 +1,6 @@
 package app.softlanding.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -49,10 +50,12 @@ data class Food(
     val servings: Int = 0,
     /** A dish taken from a village's recipe. */
     val village: String? = null,
+    /** Dietary fiber per 100 g (#2); 0 when unknown. */
+    @ColumnInfo(defaultValue = "0") val fiber: Double = 0.0,
 ) {
     val isDish get() = source == Source.DISH
     fun title(ru: Boolean) = if (!ru && en.isNotBlank()) en else name
-    fun per(grams: Double) = Nutr(kcal * grams / 100, p * grams / 100, f * grams / 100, c * grams / 100)
+    fun per(grams: Double) = Nutr(kcal * grams / 100, p * grams / 100, f * grams / 100, c * grams / 100, fiber * grams / 100)
 }
 
 /** One line of a dish: so many grams of a food. */
@@ -82,8 +85,10 @@ data class Entry(
     /** How the amount was put, for the list: "2 pc", "1 plate". Empty means plain grams. */
     val how: String = "",
     val ml: Boolean = false,
+    /** Fiber, grams (#2). */
+    @ColumnInfo(defaultValue = "0") val fb: Double = 0.0,
 ) {
-    val n get() = Nutr(kcal, p, f, c)
+    val n get() = Nutr(kcal, p, f, c, fb)
 }
 
 /** A plate or a bowl with its weight, taken off when food is weighed on it. */
@@ -107,9 +112,9 @@ data class Fair(
     @PrimaryKey val day: Long,
 )
 
-data class Nutr(val kcal: Double = 0.0, val p: Double = 0.0, val f: Double = 0.0, val c: Double = 0.0) {
-    operator fun plus(o: Nutr) = Nutr(kcal + o.kcal, p + o.p, f + o.f, c + o.c)
-    operator fun times(k: Double) = Nutr(kcal * k, p * k, f * k, c * k)
+data class Nutr(val kcal: Double = 0.0, val p: Double = 0.0, val f: Double = 0.0, val c: Double = 0.0, val fb: Double = 0.0) {
+    operator fun plus(o: Nutr) = Nutr(kcal + o.kcal, p + o.p, f + o.f, c + o.c, fb + o.fb)
+    operator fun times(k: Double) = Nutr(kcal * k, p * k, f * k, c * k, fb * k)
     companion object {
         val ZERO = Nutr()
         fun sum(xs: Iterable<Nutr>) = xs.fold(ZERO) { a, b -> a + b }

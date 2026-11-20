@@ -117,8 +117,17 @@ object Envelopes {
 object Weights {
     /** A smoothed line through the weigh-ins, so one salty dinner doesn't look like a kilo gained. */
     fun trend(ws: List<Weigh>): List<Pair<Long, Double>> {
+        // A quarter of the way to each new weigh-in per day passed (#5): after a week away the line catches up
+        // instead of crawling up from an old value while the scales already say less.
         var t: Double? = null
-        return ws.sortedBy { it.day }.map { w -> val v = t?.let { it + (w.kg - it) * .25 } ?: w.kg; t = v; w.day to v }
+        var prev: Long? = null
+        return ws.sortedBy { it.day }.map { w ->
+            val gap = prev?.let { (w.day - it).coerceAtLeast(1) } ?: 1
+            val a = 1 - Math.pow(.75, gap.toDouble())
+            val v = t?.let { it + (w.kg - it) * a } ?: w.kg
+            t = v; prev = w.day
+            w.day to v
+        }
     }
 
     fun at(trend: List<Pair<Long, Double>>, day: Long): Double? = trend.lastOrNull { it.first <= day }?.second ?: trend.firstOrNull()?.second

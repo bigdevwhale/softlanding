@@ -150,9 +150,10 @@ fun JournalScreen(h: Home, nav: Nav) {
         Section(stringResource(R.string.weight_title), trail = { Btn(stringResource(R.string.weigh_short), { nav.go(Overlay.Weigh) }, small = true, kind = Kind.SECONDARY) })
         if (h.weighs.size >= 2) Card(Modifier.fillMaxWidth()) {
             WeightChart(h)
-            val t = h.trend
-            val first = t.first().second
-            val last = t.last().second
+            // the last real weigh-in and the change from the start the flyer set (or the first weigh-in), not the smoothed ends (#5)
+            val ws = h.weighs.sortedBy { it.day }
+            val first = h.s.profile.start.takeIf { it > 0 } ?: ws.first().kg
+            val last = ws.last().kg
             Text(stringResource(R.string.weight_summary, one(last), (if (last - first > 0) "+" else "") + one(last - first)), style = T.Small, modifier = Modifier.padding(top = 6.dp))
         } else Text(stringResource(R.string.weight_empty), style = T.Small)
 

@@ -31,6 +31,8 @@ data class Profile(
 
 /** The day's norm and the meadow around it: land anywhere between [lo] and [hi] and it's a soft landing. */
 data class Norm(val kcal: Int, val protein: Int, val fat: Int, val carbs: Int, val lo: Int, val hi: Int, val bmr: Int, val tdee: Int) {
+    /** Fiber to aim at (#2): 14 g per 1000 kcal, as dietary guidelines put it, and at least 20. */
+    val fiber: Int get() = maxOf(20, kcal * 14 / 1000)
     fun soft(eaten: Double) = eaten >= lo && eaten <= hi
 
     companion object {

@@ -68,6 +68,7 @@ fun FoodEditor(h: Home, o: Overlay.FoodEdit, nav: Nav) {
     var brand by remember { mutableStateOf(f0?.brand.orEmpty()) }
     fun init(d: Double?) = d?.let { one(it).replace('.', ',') }.orEmpty()
     var kc by remember { mutableStateOf(init(f0?.kcal ?: o.guess?.kcal)) }
+    var fbr by remember { mutableStateOf(init(f0?.fiber?.takeIf { it > 0 })) }
     var p by remember { mutableStateOf(init(f0?.p ?: o.guess?.p)) }
     var fa by remember { mutableStateOf(init(f0?.f ?: o.guess?.f)) }
     var cb by remember { mutableStateOf(init(f0?.c ?: o.guess?.c)) }
@@ -106,7 +107,7 @@ fun FoodEditor(h: Home, o: Overlay.FoodEdit, nav: Nav) {
         val base = f0 ?: Food(name = "", kcal = 0.0, p = 0.0, f = 0.0, c = 0.0, source = if (o.guess != null) Source.LABEL else if (o.barcode != null) Source.SCAN else Source.USER)
         // Renaming a built-in food in English keeps its Russian name, and the other way round.
         val named = if (base.source == Source.BUILTIN && !h.ru) base.copy(en = name.trim()) else base.copy(name = name.trim())
-        val food = named.copy(brand = brand.trim(), kcal = kcalV, p = pp, f = ff, c = cc, ml = ml, portions = Portion.join(ps), barcode = base.barcode ?: o.barcode)
+        val food = named.copy(brand = brand.trim(), kcal = kcalV, p = pp, f = ff, c = cc, ml = ml, portions = Portion.join(ps), barcode = base.barcode ?: o.barcode, fiber = num(fbr) ?: 0.0)
         scope.launch {
             val id = if (food.id > 0) { c.foods.update(food); food.id } else c.foods.insert(food)
             val saved = c.foods.get(id) ?: food
@@ -144,6 +145,10 @@ fun FoodEditor(h: Home, o: Overlay.FoodEdit, nav: Nav) {
         Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             NumField(fa, { fa = it }, stringResource(R.string.fat), Modifier.weight(1f))
             NumField(cb, { cb = it }, stringResource(R.string.carbs), Modifier.weight(1f))
+        }
+        Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            NumField(fbr, { fbr = it }, stringResource(R.string.fiber), Modifier.weight(1f))
+            androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
         }
         if (k != null && est > 0 && !Label.fits(pp, ff, cc, k)) Text(stringResource(R.string.f_mismatch, kcal(est)), style = T.Small.copy(color = C.redD), modifier = Modifier.padding(top = 8.dp))
         if (k == null && est > 0) Text(stringResource(R.string.f_from_macros, kcal(est)), style = T.Small, modifier = Modifier.padding(top = 8.dp))

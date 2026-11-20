@@ -226,7 +226,7 @@
     <string name="week_soft">soft landings</string>
     <string name="weight_title">Weight</string>
     <string name="weight_empty">Weigh in a couple of times and the line appears here.</string>
-    <string name="weight_summary">Trend %1$s kg · %2$s kg since the start</string>
+    <string name="weight_summary">Now %1$s kg · %2$s kg since the start</string>
     <string name="logbook">Aeronaut\'s notes</string>
     <string name="logbook_empty">The first note appears after the first flight.</string>
     <string name="pantry_title">Pantry</string>
@@ -309,4 +309,11 @@
     <string name="ob_3c">Writing things down is quick: scan a barcode, type “buckwheat 200, 2 eggs” in one line, or repeat yesterday\'s breakfast in one tap.</string>
     <string name="ob_3d">Two days a month can be fairs: birthdays and holidays don\'t count and don\'t break the streak.</string>
     <string name="ob_start">Take off</string>
+    <string name="day_recipe_take">Take ›</string>
+    <string name="macro_none">Nothing written down yet.</string>
+    <string name="fiber">Fiber</string>
+    <string name="w_title">SOFT LANDING · TODAY</string>
+    <string name="w_kcal">%1$d of %2$d kcal</string>
+    <string name="w_label">Macros today</string>
+    <string name="w_desc">Calories, protein, fat, carbs and fiber for the day</string>
 </resources>

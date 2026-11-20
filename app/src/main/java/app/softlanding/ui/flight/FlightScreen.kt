@@ -1,5 +1,10 @@
 package app.softlanding.ui.flight
 
+import app.softlanding.ui.components.one
+import androidx.compose.material.icons.rounded.MenuBook
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -94,6 +99,7 @@ fun FlightScreen(h: Home, day: Long, nav: Nav) {
         bus.say(ctx.getString(R.string.loaded, what, kcal(l.kcal)), ctx.getString(R.string.undo)) { c.write { undo(l.ids) } }
     }
 
+    var macro by remember { mutableIntStateOf(-1) }
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             // The sky, with the date over it.
@@ -163,9 +169,17 @@ fun FlightScreen(h: Home, day: Long, nav: Nav) {
                     }
                     Box(Modifier.padding(top = 14.dp).fillMaxWidth().height(1.dp).background(C.line))
                     Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        MacroBar(stringResource(R.string.protein), eaten.p, norm.protein, C.protein, Modifier.weight(1f))
-                        MacroBar(stringResource(R.string.fat), eaten.f, norm.fat, C.fat, Modifier.weight(1f))
-                        MacroBar(stringResource(R.string.carbs), eaten.c, norm.carbs, C.carbs, Modifier.weight(1f))
+                        MacroBar(stringResource(R.string.protein), eaten.p, norm.protein, C.protein, Modifier.weight(1f).clickable { macro = 0 })
+                        MacroBar(stringResource(R.string.fat), eaten.f, norm.fat, C.fat, Modifier.weight(1f).clickable { macro = 1 })
+                        MacroBar(stringResource(R.string.carbs), eaten.c, norm.carbs, C.carbs, Modifier.weight(1f).clickable { macro = 2 })
+                    }
+                    // fiber, a quiet line of its own (#2)
+                    Row(Modifier.padding(top = 10.dp).fillMaxWidth().clickable { macro = 3 }, verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.fiber), style = T.Small, modifier = Modifier.width(84.dp))
+                        Box(Modifier.weight(1f).height(6.dp).clip(Pill).background(C.meadow.copy(alpha = .18f))) {
+                            Box(Modifier.fillMaxWidth((eaten.fb / norm.fiber).toFloat().coerceIn(0f, 1f)).height(6.dp).clip(Pill).background(C.meadow))
+                        }
+                        Text("  ${eaten.fb.roundToInt()} / ${norm.fiber} " + stringResource(R.string.g), style = T.Small)
                     }
                     if (Gauges.of(eaten, norm).wind && !fair) Text(stringResource(R.string.wind_ok), style = T.Small.copy(color = C.skyD), modifier = Modifier.padding(top = 8.dp))
                 }
@@ -192,7 +206,24 @@ fun FlightScreen(h: Home, day: Long, nav: Nav) {
                             bus.say(ctx.getString(R.string.fair_declared))
                         }, kind = Kind.GHOST, icon = Icons.Rounded.Celebration, small = true)
                     }
-                } else Text(app.softlanding.domain.Logbook.line(flight, h.village(flight.at).name(h.ru), h.ru), style = T.Log, modifier = Modifier.padding(top = 14.dp, start = 4.dp, end = 4.dp))
+                } else {
+                    Text(app.softlanding.domain.Logbook.line(flight, h.village(flight.at).name(h.ru), h.ru), style = T.Log, modifier = Modifier.padding(top = 14.dp, start = 4.dp, end = 4.dp))
+                    // the recipe that morning's village gave, still here if the morning card was closed (#7)
+                    if (flight.landing == app.softlanding.domain.Landing.SOFT && flight.at >= 0) {
+                        val v = h.village(flight.at)
+                        Card(Modifier.fillMaxWidth().padding(top = 10.dp), onClick = { nav.go(Overlay.Village(flight.at)) }, color = C.paper) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.MenuBook, null, tint = C.goldD, modifier = Modifier.size(20.dp))
+                                Spacer(Modifier.width(10.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(stringResource(R.string.dish_from_village, v.name(h.ru)), style = T.Small)
+                                    Text(v.recipe(h.ru), style = T.Strong)
+                                }
+                                Text(if (h.dishOf(v) == null) stringResource(R.string.day_recipe_take) else "›", style = T.Small.copy(color = C.skyD))
+                            }
+                        }
+                    }
+                }
                 Spacer(Modifier.height(110.dp))
             }
         }
@@ -207,6 +238,7 @@ fun FlightScreen(h: Home, day: Long, nav: Nav) {
             Btn(stringResource(R.string.add_food), { nav.go(Overlay.Add(meal, day)) }, Modifier.height(56.dp), icon = Icons.Rounded.Add)
         }
     }
+    if (macro >= 0) MacroSheet(h, day, macro) { macro = -1 }
 }
 
 @Composable
@@ -312,5 +344,28 @@ private fun MeadowMark(lo: Double, hi: Double, span: Double, modifier: Modifier 
         val mid = ((lo + hi) / 2 / span).toFloat()
         Text(stringResource(R.string.strip_meadow), style = T.Tiny.copy(color = C.meadowD), maxLines = 1,
             modifier = Modifier.padding(start = (maxWidth * mid - 14.dp).coerceAtLeast(0.dp)))
+    }
+}
+
+/** What made up the day's protein, fat or carbs (#1): each food with its grams and share, the biggest first. */
+@Composable
+private fun MacroSheet(h: Home, day: Long, which: Int, onClose: () -> Unit) {
+    val es = h.day(day)
+    fun of(e: app.softlanding.data.Entry) = when (which) { 0 -> e.p; 1 -> e.f; 2 -> e.c; else -> e.fb }
+    val total = es.sumOf { of(it) }
+    val title = stringResource(when (which) { 0 -> R.string.protein; 1 -> R.string.fat; 2 -> R.string.carbs; else -> R.string.fiber })
+    val color = when (which) { 0 -> C.protein; 1 -> C.fat; 2 -> C.carbs; else -> C.meadowD }
+    app.softlanding.ui.components.Sheet(onClose, title + " · " + total.roundToInt() + " " + stringResource(R.string.g)) {
+        Column(Modifier.verticalScroll(rememberScrollState())) {
+            if (total <= 0.0) Text(stringResource(R.string.macro_none), style = T.Small)
+            es.groupBy { it.name }.map { (n, l) -> n to l.sumOf { of(it) } }.filter { it.second > 0.05 }.sortedByDescending { it.second }.forEach { (n, g) ->
+                Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(n, style = T.Body, modifier = Modifier.weight(1f), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    Text("${one(g)} " + stringResource(R.string.g), style = T.Strong)
+                    Text("  " + (g / total * 100).roundToInt() + "%", style = T.Small.copy(color = color), modifier = Modifier.width(48.dp))
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+        }
     }
 }

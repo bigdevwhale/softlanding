@@ -121,7 +121,8 @@ interface MiscDao {
     suspend fun unfair(f: Fair)
 }
 
-@Database(entities = [Food::class, Ingredient::class, Entry::class, Plate::class, Weigh::class, Fair::class], version = 1, exportSchema = true)
+@Database(entities = [Food::class, Ingredient::class, Entry::class, Plate::class, Weigh::class, Fair::class], version = 2, exportSchema = true,
+    autoMigrations = [androidx.room.AutoMigration(from = 1, to = 2)])
 @TypeConverters(Converters::class)
 abstract class LandingDb : RoomDatabase() {
     abstract fun foods(): FoodDao

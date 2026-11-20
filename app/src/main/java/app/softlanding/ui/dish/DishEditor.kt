@@ -138,7 +138,24 @@ fun DishEditor(h: Home, o: Overlay.Dish, nav: Nav) {
             Btn(stringResource(R.string.save), ::save, Modifier.fillMaxWidth(), enabled = name.isNotBlank() && parts.isNotEmpty())
         }) {
             Field(name, { name = it }, stringResource(R.string.dish_name_hint), Modifier.fillMaxWidth().padding(top = 6.dp))
-            d0?.village?.let { v -> Text(stringResource(R.string.dish_from_village, h.villages.firstOrNull { it.key == v }?.name(h.ru).orEmpty()), style = T.Small, modifier = Modifier.padding(top = 6.dp)) }
+            d0?.village?.let { key ->
+                val vil = h.villages.firstOrNull { it.key == key }
+                // the village it came from opens its recipe page on the route (#8)
+                val abs = (0 until h.journey.soft).lastOrNull { h.village(it).key == key } ?: h.villages.indexOfFirst { it.key == key }
+                Text(stringResource(R.string.dish_from_village, vil?.name(h.ru).orEmpty()) + "  ›", style = T.Small.copy(color = C.skyD),
+                    modifier = Modifier.padding(top = 6.dp).clickable(enabled = abs >= 0) { nav.go(Overlay.Village(abs)) })
+                // and the steps themselves, not only what goes in (#6)
+                val steps = vil?.steps(h.ru).orEmpty()
+                if (steps.isNotEmpty()) {
+                    Section(stringResource(R.string.village_steps))
+                    steps.forEachIndexed { i, st ->
+                        Row(Modifier.padding(vertical = 3.dp)) {
+                            Text("${i + 1}", style = T.Strong.copy(color = C.red), modifier = Modifier.width(22.dp))
+                            Text(st, style = T.Body, modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
 
             Section(stringResource(R.string.dish_ingredients))
             items.forEachIndexed { i, (f, g) ->
