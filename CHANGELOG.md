@@ -6,6 +6,27 @@ line "<!-- tg", then 2-4 short lines in Russian for users (what is new, what is 
 then close it like any HTML comment. The release notes carry it, and the chat bot posts those lines.
 -->
 
+## [1.1.0] - 2026-11-20
+
+### Added
+- **Fiber (#2):** a line of its own under protein, fat and carbs, aiming at 14 g per 1000 kcal (20 g at least). The built-in table knows the fiber of all its 249 foods, the online search brings it in, dishes add it up, and a food's editor has a field for it. Days written before keep no fiber; the count starts with new records.
+- **A home-screen widget (#4):** today's calories with a bar, protein, fat, carbs and fiber; a tap opens the app, and it follows every record.
+- **What made it up (#1):** a tap on protein, fat, carbs or fiber lists the day's foods with their grams and share, the biggest first.
+- **A past day's recipe (#7):** a day landed softly shows the recipe of that morning's village, ready to take, even if the morning card was closed.
+
+### Changed
+- **A village's dish keeps its steps (#6):** «How to cook» is there in the dish, not only what goes in, and «A recipe from …» opens the village on the route (#8).
+
+### Fixed
+- **The weight line (#5)** no longer crawls up from an old value after days without weighing: it catches up with the scales. The line under the chart tells the last real weigh-in and the change from the start.
+
+<!-- tg
+Новое: клетчатка с нормой на день и виджет КБЖУ для рабочего стола
+Нажми на белки, жиры или углеводы – покажу, какими продуктами они набраны
+Рецепт деревни теперь можно найти в прошлом дне, а в блюде сохраняется «Как готовить» и ссылка на деревню
+Исправлено: линия веса больше не уходит вверх, когда вес снижается
+-->
+
 ## [1.0.2] - 2026-11-17
 
 ### Fixed
