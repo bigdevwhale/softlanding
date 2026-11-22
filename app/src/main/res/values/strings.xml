@@ -316,4 +316,6 @@
     <string name="w_kcal">%1$d of %2$d kcal</string>
     <string name="w_label">Macros today</string>
     <string name="w_desc">Calories, protein, fat, carbs and fiber for the day</string>
+    <string name="meal_photo">Photo of the meal</string>
+    <string name="photo_delete">Delete</string>
 </resources>

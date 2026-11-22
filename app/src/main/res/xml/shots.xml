@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <cache-path name="shots" path="shots/" />
+    <!-- photos of meals (#9) -->
+    <files-path name="meals" path="meals/" />
 </paths>

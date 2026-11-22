@@ -1,5 +1,11 @@
 package app.softlanding.ui.flight
 
+import androidx.compose.material.icons.rounded.PhotoCamera
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.ui.graphics.asImageBitmap
+import kotlinx.coroutines.launch
 import app.softlanding.ui.components.one
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.runtime.setValue
@@ -243,15 +249,37 @@ fun FlightScreen(h: Home, day: Long, nav: Nav) {
 
 @Composable
 private fun MealCard(h: Home, day: Long, m: Meal, nav: Nav) {
-    val c = LocalContext.current.container
+    val ctx = LocalContext.current
+    val c = ctx.container
     val es = h.meal(day, m)
     val sum = es.sumOf { it.kcal }
+    // photos of the meal (#9): the phone's camera writes them, the card shows them in a row
+    val ver by app.softlanding.data.MealPhotos.version.collectAsState()
+    val photos = remember(day, m, ver) { app.softlanding.data.MealPhotos.of(ctx, day, m) }
+    var pending by remember { mutableStateOf<java.io.File?>(null) }
+    var look by remember { mutableStateOf<java.io.File?>(null) }
+    val shoot = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.TakePicture()) { ok ->
+        pending?.let { f -> c.scope.launch(kotlinx.coroutines.Dispatchers.IO) { app.softlanding.data.MealPhotos.settle(f, ok) } }; pending = null
+    }
     Card(Modifier.fillMaxWidth().padding(top = 12.dp), pad = 0.dp) {
         Row(Modifier.fillMaxWidth().clickable { nav.go(Overlay.Add(m, day)) }.padding(start = 16.dp, end = 10.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(mealName(m)), style = T.Strong.copy(fontSize = 17.sp), modifier = Modifier.weight(1f))
             if (es.isNotEmpty()) Text(kcal(sum), style = T.Strong.copy(fontSize = 17.sp), modifier = Modifier.padding(end = 10.dp))
+            Box(Modifier.padding(end = 8.dp).size(34.dp).clip(CircleShape).background(C.line).clickable {
+                val (f, uri) = app.softlanding.data.MealPhotos.next(ctx, day, m); pending = f
+                runCatching { shoot.launch(uri) }.onFailure { pending = null; f.delete() }
+            }, contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.PhotoCamera, stringResource(R.string.meal_photo), tint = C.muted, modifier = Modifier.size(18.dp))
+            }
             Box(Modifier.size(34.dp).clip(CircleShape).background(C.redL), contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.Add, stringResource(R.string.add_to, stringResource(mealName(m))), tint = C.red, modifier = Modifier.size(20.dp))
+            }
+        }
+        if (photos.isNotEmpty()) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            for (f in photos) {
+                val bmp = remember(f.path, ver) { app.softlanding.data.MealPhotos.thumb(f, 160)?.asImageBitmap() }
+                if (bmp != null) androidx.compose.foundation.Image(bmp, null, Modifier.size(72.dp).clip(RoundedCornerShape(10.dp)).clickable { look = f },
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop)
             }
         }
         if (es.isNotEmpty()) Box(Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(1.dp).background(C.line))
@@ -268,6 +296,18 @@ private fun MealCard(h: Home, day: Long, m: Meal, nav: Nav) {
             }
         }
         Spacer(Modifier.height(6.dp))
+    }
+    look?.let { f ->
+        androidx.compose.ui.window.Dialog({ look = null }) {
+            Column(Modifier.clip(RoundedCornerShape(16.dp)).background(C.paper).padding(12.dp)) {
+                val big = remember(f.path) { app.softlanding.data.MealPhotos.thumb(f, 900)?.asImageBitmap() }
+                if (big != null) androidx.compose.foundation.Image(big, null, Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)), contentScale = androidx.compose.ui.layout.ContentScale.FillWidth)
+                Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(mealName(m)), style = T.Strong, modifier = Modifier.weight(1f))
+                    androidx.compose.material3.TextButton(onClick = { app.softlanding.data.MealPhotos.delete(f); look = null }) { Text(stringResource(R.string.photo_delete), style = T.Button.copy(color = C.red)) }
+                }
+            }
+        }
     }
 }
 

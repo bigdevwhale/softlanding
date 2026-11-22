@@ -6,6 +6,15 @@ line "<!-- tg", then 2-4 short lines in Russian for users (what is new, what is 
 then close it like any HTML comment. The release notes carry it, and the chat bot posts those lines.
 -->
 
+## [1.2.0] - 2026-11-22
+
+### Added
+- **Photos of meals (#9):** a camera button beside «+» on every meal takes a photo with the phone's own camera; the meal card shows them in a row, on past days too, and a tap opens one large with «Delete». The photos stay in the app, not in the gallery.
+
+<!-- tg
+У каждого приёма пищи появилась кнопка камеры: можно сфотографировать, что ешь, – снимки остаются в карточке дня, как дневник еды в фотографиях
+-->
+
 ## [1.1.0] - 2026-11-20
 
 ### Added

@@ -316,4 +316,6 @@
     <string name="w_kcal">%1$d из %2$d ккал</string>
     <string name="w_label">КБЖУ на сегодня</string>
     <string name="w_desc">Калории, белки, жиры, углеводы и клетчатка за день</string>
+    <string name="meal_photo">Фото еды</string>
+    <string name="photo_delete">Удалить</string>
 </resources>
